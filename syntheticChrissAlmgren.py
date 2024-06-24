@@ -26,6 +26,19 @@ GAMMA = BID_ASK_SP / (0.1 * DAILY_TRADE_VOL)                         # Permanent
 
 # ----------------------------------------------------------------------------------------------------------------------- #
 
+def ValueFunctionTerminal(x, d, kappa, eta, alpha, nu):
+    
+    return (1-kappa) * d * x + eta/2 * np.power(np.abs(x), alpha + 1)
+
+def StateActionValueFunctionTerminal(xi, x, d, kappa, eta, alpha, nu, quantizer):
+    
+    vec = (1-kappa) * d * xi + eta/2 * np.power(np.abs(xi), alpha + 1) + nu * (x - xi)**2 \
+            + ValueFunctionTerminal(x - xi,
+                                    (1-kappa) * d + eta * np.power(np.abs(xi), alpha) * np.sign(xi) + quantizer[1],
+                                    kappa, eta, alpha, nu) 
+    
+    return np.sum(vec * quantizer[0])
+
 
 # Simulation Environment
 
@@ -55,7 +68,11 @@ class MarketEnvironment():
         self.singleStepVariance = SINGLE_STEP_VARIANCE
         self.eta = ETA
         self.gamma = GAMMA
-        
+
+
+
+
+                     
         # Calculate some Almgren-Chriss parameters
         self.tau = self.liquidation_time / self.num_n 
         self.eta_hat = self.eta - (0.5 * self.gamma * self.tau)
